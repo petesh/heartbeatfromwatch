@@ -7,16 +7,39 @@
 //
 
 #import "AppDelegate.h"
+#import <HealthKit/Healthkit.h>
 
 @interface AppDelegate ()
+
+@property HKHealthStore *healthStore;
 
 @end
 
 @implementation AppDelegate
 
+- (NSSet *)typesToWrite {
+    return [[NSSet alloc] init];
+}
+- (NSSet *)typesToRead {
+    return [NSSet setWithObjects:[HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierHeartRate], nil];
+}
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
+
+    if ([HKHealthStore isHealthDataAvailable] && !self.healthStore) {
+        self.healthStore = [[HKHealthStore alloc] init];
+    }
+    if (self.healthStore != nil) {
+        [self.healthStore requestAuthorizationToShareTypes:[self typesToWrite]
+                                                 readTypes:[self typesToRead]
+                                                completion:^(BOOL success, NSError * _Nullable error) {
+                                                    if (!success) {
+                                                        NSLog(@"Failed to get permission");
+                                                    }
+                                                }];
+    }
+
     return YES;
 }
 
